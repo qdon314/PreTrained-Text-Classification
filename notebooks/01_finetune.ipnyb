@@ -797,7 +797,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 13,
    "id": "3f8c6a6e",
    "metadata": {},
    "outputs": [],
@@ -916,9 +916,98 @@
    ]
   },
   {
+   "cell_type": "markdown",
+   "id": "e4b523b8",
+   "metadata": {},
+   "source": [
+    "## Evaluate"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "id": "5d5b7090",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/Users/quentindonnelly/micromamba/envs/hf-seq-classification/lib/python3.10/site-packages/torch/utils/data/dataloader.py:692: UserWarning: 'pin_memory' argument is set as true but not supported on MPS now, device pinned memory won't be used.\n",
+      "  warnings.warn(warn_msg)\n"
+     ]
+    },
+    {
+     "data": {
+      "text/html": [
+       "\n",
+       "    <div>\n",
+       "      \n",
+       "      <progress value='625' max='625' style='width:300px; height:20px; vertical-align: middle;'></progress>\n",
+       "      [625/625 00:42]\n",
+       "    </div>\n",
+       "    "
+      ],
+      "text/plain": [
+       "<IPython.core.display.HTML object>"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "{'eval_loss': 0.3942188024520874,\n",
+       " 'eval_accuracy': 0.8996,\n",
+       " 'eval_runtime': 62.2238,\n",
+       " 'eval_samples_per_second': 40.178,\n",
+       " 'eval_steps_per_second': 10.044,\n",
+       " 'epoch': 2.0}"
+      ]
+     },
+     "execution_count": 11,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "metrics = trainer.evaluate()\n",
+    "metrics"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "926006a4",
+   "metadata": {},
+   "source": [
+    "## Save Model & Tokenizer"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "id": "d77b0d74",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Saved model and tokenizer to ../models/notebook-checkpoints\n"
+     ]
+    }
+   ],
+   "source": [
+    "trainer.save_model(output_dir)\n",
+    "tokenizer.save_pretrained(output_dir)\n",
+    "print(f\"Saved model and tokenizer to {output_dir}\")"
+   ]
+  },
+  {
    "cell_type": "code",
    "execution_count": null,
-   "id": "5d5b7090",
+   "id": "9479e2c3",
    "metadata": {},
    "outputs": [],
    "source": []

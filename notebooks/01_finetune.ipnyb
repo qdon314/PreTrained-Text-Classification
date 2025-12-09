@@ -797,12 +797,12 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 9,
+   "execution_count": null,
    "id": "3f8c6a6e",
    "metadata": {},
    "outputs": [],
    "source": [
-    "output_dir = \"models/notebook-checkpoints\"\n",
+    "output_dir = \"../models/notebook-checkpoints\"\n",
     "\n",
     "training_args = TrainingArguments(\n",
     "    gradient_accumulation_steps=2,\n",

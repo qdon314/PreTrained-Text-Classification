@@ -1,0 +1,41 @@
+name: hf-seq-classification
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+
+  # Core ML stack
+  - pytorch=2.9
+  - torchvision
+  - torchaudio
+
+  # Hugging Face ecosystem
+  - pip
+  - pip:
+      - transformers
+      - datasets
+      - evaluate
+      - accelerate
+      - huggingface_hub
+
+      # Metrics, evaluation, and plotting
+      - scikit-learn
+      - matplotlib
+      - seaborn
+      - pandas
+      - numpy
+
+      # Notebook support
+      - jupyter
+      - jupyterlab
+      - ipywidgets
+
+      # Optional utilities
+      - tqdm
+      - python-dotenv
+
+      # Optional export/optimization
+      - onnx
+      - onnxruntime

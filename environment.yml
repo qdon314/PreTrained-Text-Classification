@@ -7,7 +7,7 @@ dependencies:
   - python=3.10
 
   # Core ML stack
-  - pytorch=2.9
+  - pytorch=2.2
   - torchvision
   - torchaudio
 

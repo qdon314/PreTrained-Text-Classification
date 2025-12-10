@@ -3,7 +3,7 @@ from utils.path_utils import get_model_path
 
 
 def test_simple_inference_pipeline():
-    model_dir = get_model_path( "notebook-checkpoints")
+    model_dir = get_model_path( "imdb-distilbert-v1")
 
     tokenizer = AutoTokenizer.from_pretrained(model_dir)
     model = AutoModelForSequenceClassification.from_pretrained(model_dir)

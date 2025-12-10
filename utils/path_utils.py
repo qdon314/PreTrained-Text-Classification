@@ -12,5 +12,5 @@ def get_model_path(model: str) -> Path:
     print("Project root assumed as:", ROOT)
     print("Models dir exists:", (ROOT / "models").exists())
 
-    model_path = ROOT / "models" / model
+    model_path = ROOT / "models" / "runs" / model
     return model_path

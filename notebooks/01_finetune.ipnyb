@@ -18,7 +18,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 3,
+   "execution_count": null,
    "id": "1a9ee50a",
    "metadata": {},
    "outputs": [],
@@ -31,7 +31,8 @@
     "    Trainer,\n",
     ")\n",
     "import evaluate\n",
-    "import numpy as np\n"
+    "import numpy as np\n",
+    "from utils.path_utils import get_model_path\n"
    ]
   },
   {
@@ -797,12 +798,12 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 13,
+   "execution_count": null,
    "id": "3f8c6a6e",
    "metadata": {},
    "outputs": [],
    "source": [
-    "output_dir = \"../models/notebook-checkpoints\"\n",
+    "output_dir = get_model_path(\"imdbb-distilbert-v2\")\n",
     "\n",
     "training_args = TrainingArguments(\n",
     "    gradient_accumulation_steps=2,\n",

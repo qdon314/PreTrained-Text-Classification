@@ -51,7 +51,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 11,
+   "execution_count": null,
    "id": "25a99291",
    "metadata": {},
    "outputs": [
@@ -76,7 +76,7 @@
    ],
    "source": [
     "\n",
-    "model_path = get_model_path(\"notebook-checkpoints\")\n",
+    "model_path = get_model_path(\"imdb-distilbert-v1\")\n",
     "tokenizer = AutoTokenizer.from_pretrained(model_path)\n",
     "model = AutoModelForSequenceClassification.from_pretrained(model_path)\n",
     "\n",

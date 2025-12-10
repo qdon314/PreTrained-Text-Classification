@@ -1,0 +1,26 @@
+[project]
+name = "Pretrained_Text_Classification"
+version = "0.1.0"
+description = "Utilities and tools for text classification projects"
+authors = [
+  { name = "Quentin Donnelly" }
+]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "transformers",
+    "datasets",
+    "evaluate",
+    "accelerate",
+]
+
+[tool.setuptools]
+package-dir = { "" = "." }
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["utils", "scripts"]
+
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"

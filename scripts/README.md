@@ -8,8 +8,10 @@ conda env create -f environment.yml # If not already created
 conda activate hf-seq-classification
 ```
 
-Authenticate with your HuggingFace token to push to the Hub:
-`huggingface-cli login`
+__Authenticate with your HuggingFace token to push to the Hub__:
+```bash
+huggingface-cli login
+```
 
 ___
 ## 1. Train.py

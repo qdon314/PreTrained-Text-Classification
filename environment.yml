@@ -25,7 +25,7 @@ dependencies:
       - matplotlib
       - seaborn
       - pandas
-      - numpy
+      - numpy==1.26
 
       # Notebook support
       - jupyter

@@ -3,6 +3,14 @@ import random
 import pandas as pd
 from IPython.display import display, HTML
 
+"""
+Utility functions for inspecting and visualizing HuggingFace Datasets.
+
+These helpers are primarily designed for use inside Jupyter notebooks, where
+HTML rendering is supported. Functions here allow quick random inspection of
+dataset samples, along with automatic decoding of ClassLabel features.
+"""
+
 def show_random_elements(dataset, num_examples=10):
     assert num_examples <= len(dataset), "Can't pick more elements than there are in the dataset."
     picks = []

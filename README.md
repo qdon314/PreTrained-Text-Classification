@@ -73,34 +73,17 @@ project-root/
 
 ### **1. Create & activate environment**
 
-With pip:
+> [Install Miniconda if not already installed](https://www.anaconda.com/docs/getting-started/miniconda/install#macos-2)
 
 ```bash
-python3 -m venv .env
-source .env/bin/activate
-pip install -r requirements.txt
+conda env create -f environment.yml # If not already created
+conda activate hf-seq-classification
 ```
 
-Recommended dependencies:
-
+__Authenticate with your HuggingFace token to push to the Hub__:
+```bash
+huggingface-cli login
 ```
-transformers
-datasets
-evaluate
-accelerate
-scikit-learn
-matplotlib
-numpy
-pandas
-```
-
-On Apple Silicon:
-
-```
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-```
-
-(or the MPS build bundled with normal PyTorch wheels)
 
 ---
 

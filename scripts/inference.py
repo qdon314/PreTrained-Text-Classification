@@ -4,6 +4,25 @@ from typing import List, Union
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
+"""
+inference.py
+
+Provides programmatic and command-line interfaces for running inference using a
+fine-tuned text classification model.
+
+Functions:
+    • load_model_and_tokenizer(): Load a model from disk or HuggingFace Hub
+    • classify_texts(): Run batched inference and return predicted labels/scores
+
+CLI Usage:
+    python scripts/inference.py \
+        --model_path models/runs/imdb-distilbert-v1 \
+        --text "This movie was great!" "Terrible acting."
+
+Notes:
+    This script automatically selects MPS, CUDA, or CPU depending on availability.
+"""
+
 
 def load_model_and_tokenizer(model_path_or_hub_id: str):
     tokenizer = AutoTokenizer.from_pretrained(model_path_or_hub_id)

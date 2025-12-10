@@ -11,6 +11,29 @@ from transformers import (
 import evaluate
 import numpy as np
 
+"""
+train.py
+
+Fine-tunes a HuggingFace Transformer model for text classification tasks.
+
+This script supports:
+    • Arbitrary pretrained model selection
+    • Automatic dataset loading from the HuggingFace Hub
+    • Tokenization and preprocessing
+    • Configurable hyperparameters via command-line flags
+    • Evaluation during training
+    • Best-model selection using a chosen metric
+    • Checkpoint pruning and run reproducibility
+    • Optional push to HuggingFace Hub
+
+Example:
+    python scripts/train.py \
+        --model_name distilbert-base-uncased \
+        --dataset_name imdb \
+        --output_dir models/runs/imdb-distilbert-v1
+
+The script is intended to be called from the project root.
+"""
 
 def parse_args():
     parser = argparse.ArgumentParser(

@@ -1,0 +1,400 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "d9ef03a8",
+   "metadata": {},
+   "source": [
+    "# Evaluation & Error Analysis for Fine-Tuned IMDB Model\n",
+    "\n",
+    "This notebook:\n",
+    "\n",
+    "- Loads a fine-tuned model\n",
+    "- Evaluates it on the IMDB test set\n",
+    "- Computes accuracy\n",
+    "- Shows a confusion matrix\n",
+    "- Prints a few misclassified examples\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "bbd89ef6",
+   "metadata": {},
+   "source": [
+    "### Imports"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "id": "d9711d26",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from datasets import load_dataset\n",
+    "from transformers import AutoTokenizer, AutoModelForSequenceClassification\n",
+    "import torch\n",
+    "import numpy as np\n",
+    "import matplotlib.pyplot as plt\n",
+    "from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, classification_report\n",
+    "from utils.data_set_utils import show_random_elements\n",
+    "from utils.path_utils import get_model_path"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "fea7f0f3",
+   "metadata": {},
+   "source": [
+    "### Load model & tokenizer:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "id": "25a99291",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Project root assumed as: /Users/quentindonnelly/repos/PreTrained-Text-Classification\n",
+      "Models dir exists: True\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "({0: 'neg', 1: 'pos'}, {'neg': 0, 'pos': 1})"
+      ]
+     },
+     "execution_count": 11,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "\n",
+    "model_path = get_model_path(\"notebook-checkpoints\")\n",
+    "tokenizer = AutoTokenizer.from_pretrained(model_path)\n",
+    "model = AutoModelForSequenceClassification.from_pretrained(model_path)\n",
+    "\n",
+    "device = \"mps\" if torch.backends.mps.is_available() else \"cuda\" if torch.cuda.is_available() else \"cpu\"\n",
+    "model.to(device)\n",
+    "model.eval()\n",
+    "\n",
+    "id2label = model.config.id2label\n",
+    "label2id = {v: k for k, v in id2label.items()}\n",
+    "id2label, label2id"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "10975e60",
+   "metadata": {},
+   "source": [
+    "### Load dataset"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "d46a9dff",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>text</th>\n",
+       "      <th>label</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>Murder By Numbers is one of those movies that you expect is made-for-TV but isn't. Considering the only actor of any note is Bullock (although Michael Pitt seems to be moving onto bigger and better things), it isn't a great surprise that this movie quickly fades away from memory to be replaced by more important things. Like... remembering to lock your front door when you go out. Or putting clothes back on when you come out of the shower.&lt;br /&gt;&lt;br /&gt;Bullock plays Cassie Mayweather, a cop with personal issues (don't they all). Together with her new partner (a wet-looking Ben Chaplin), she is called to investigate the murder of a young woman. Nothing unusual there except that the perps are a couple of teenage students who think they've planned and executed the perfect murder. As the investigation continues, a battle of wills emerges between Cassie and the main suspect Richie Haywood (Ryan Gosling).&lt;br /&gt;&lt;br /&gt;The crippling issue here is that the two leads are hopeless. Bullock, though she is very nice to look at, is about as believable in the role of a hardened cynical cop as Rodney Dangerfield (actually, he'd be better!). Chaplin, for his sins, is a complete non-entity and I feel sorry that he has to put this film on his CV in his attempt to break into Hollywood. At least Gosling and Pitt, as the conniving sneering suspects, acquit themselves adequately. As if dodgy leads weren't bad enough, a story that would send anybody to sleep and a highly predictable (but illogical) ending shoot this film in the head before it has a chance to run.&lt;br /&gt;&lt;br /&gt;\"Murder By Numbers\" has absolutely nothing going for it, even a pointless nude scene by Bullock wouldn't redeem it. Well, just a little but still not enough to save it. Forgettable, predictable and redundant - this is one film that isn't going to move the cop genre forward. As Cassie probably says on her next case, there's nothing to see here people. Move along, keep moving...</td>\n",
+       "      <td>neg</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>This is my favorite classic. It was filmed a little west of Philadelphia, PA when I was 13, in 1957, and released the next year. Then in 1970, I found myself working the very same county as a rookie PA state trooper. I have always enjoyed checking out the different places where scenes were filmed. I knew the owner of the Downingtown Diner well, and he had a road sign out front which told all passing motorists that this was the \"home of the blob\". The theater scene was in Phoenixville, near Valley Forge Park and it is still showing films today!</td>\n",
+       "      <td>pos</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>The 14 year-old in me is immensely happy that they're now able to make really good looking fantasy movies, and that they're all the rage, what with Lord of the Rings, Harry Potter and The Chronicles of Narnia making loads of cash at the box office. This year will see (and already has seen) several more, most notably The Golden Compass, which has the most exciting trailer I've seen this year. Stardust, based on a novel by Neil Gaiman, showed up in theaters this week with little more than a peep. I saw no previews for it, only a couple of commercials. The critical reaction is kind of blah. I wouldn't even have seen it if not for the fact that I have to wait on a friend to see The Bourne Ultimatum, and that nothing else interesting opened this weekend. Well, if you'll forgive the horrible pun, the stars must have been rightly aligned, because I went to see Stardust, and I loved it. It's not a huge movie like Lord of the Rings. The plot line is your very basic fantasy quest (the hero sets out to look for a fallen star) filled with obstacles. But within that basic outline, the story is lively and imaginative. It's simply aiming to be a lot of fun, and a charming little romance. And it succeeds wonderfully. There were a lot of big films this summer, but none of them were nearly as fun as this one. There's a lot going on, but the story is told well and is almost entirely coherent. It isn't a masterpiece, but it definitely can occupy the same kind of ground that something like The Princess Bride has (though I don't like it quite as much as the earlier film). A lot of fun to be had here if you're a fan of the genre.</td>\n",
+       "      <td>pos</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>"
+      ],
+      "text/plain": [
+       "<IPython.core.display.HTML object>"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "25000"
+      ]
+     },
+     "execution_count": 12,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "dataset = load_dataset(\"imdb\")\n",
+    "\n",
+    "# Glance at dataset\n",
+    "show_random_elements(dataset[\"train\"], 2)\n",
+    "\n",
+    "test_ds = dataset[\"test\"]\n",
+    "len(test_ds)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "9d2ba8ae",
+   "metadata": {},
+   "source": [
+    "### Batched prediction helper"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "id": "61987a33",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def predict_batch(texts, max_length=256):\n",
+    "    enc = tokenizer(\n",
+    "        texts,\n",
+    "        truncation=True,\n",
+    "        padding=True,\n",
+    "        max_length=max_length,\n",
+    "        return_tensors=\"pt\",\n",
+    "    ).to(device)\n",
+    "\n",
+    "    with torch.no_grad():\n",
+    "        outputs = model(**enc)\n",
+    "        probs = torch.softmax(outputs.logits, dim=-1)\n",
+    "\n",
+    "    preds = torch.argmax(probs, dim=-1).cpu().numpy()\n",
+    "    return preds"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "69622775",
+   "metadata": {},
+   "source": [
+    "### Run evaluation on test set"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "id": "01c41617",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.90804"
+      ]
+     },
+     "execution_count": 14,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "batch_size = 32\n",
+    "\n",
+    "all_preds = []\n",
+    "all_labels = []\n",
+    "\n",
+    "for i in range(0, len(test_ds), batch_size):\n",
+    "    batch = test_ds[i : i + batch_size]\n",
+    "    texts = batch[\"text\"]\n",
+    "    labels = batch[\"label\"]\n",
+    "\n",
+    "    preds = predict_batch(texts)\n",
+    "    all_preds.extend(preds)\n",
+    "    all_labels.extend(labels)\n",
+    "\n",
+    "all_preds = np.array(all_preds)\n",
+    "all_labels = np.array(all_labels)\n",
+    "\n",
+    "accuracy = (all_preds == all_labels).mean()\n",
+    "accuracy"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "0d37b418",
+   "metadata": {},
+   "source": [
+    "### Confusion matrix"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "id": "ae362350",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "image/png": "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",
+      "text/plain": [
+       "<Figure size 640x480 with 2 Axes>"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "cm = confusion_matrix(all_labels, all_preds)\n",
+    "disp = ConfusionMatrixDisplay(\n",
+    "    confusion_matrix=cm,\n",
+    "    display_labels=[id2label[i] for i in range(len(id2label))]\n",
+    ")\n",
+    "disp.plot(xticks_rotation=45)\n",
+    "plt.tight_layout()\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "a2b32711",
+   "metadata": {},
+   "source": [
+    "### Classification report"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "id": "25ef52b7",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "              precision    recall  f1-score   support\n",
+      "\n",
+      "         neg       0.91      0.90      0.91     12500\n",
+      "         pos       0.90      0.91      0.91     12500\n",
+      "\n",
+      "    accuracy                           0.91     25000\n",
+      "   macro avg       0.91      0.91      0.91     25000\n",
+      "weighted avg       0.91      0.91      0.91     25000\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "target_names = [id2label[i] for i in range(len(id2label))]\n",
+    "print(classification_report(all_labels, all_preds, target_names=target_names))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "9f85b32b",
+   "metadata": {},
+   "source": [
+    "### Inspect mistakes"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 17,
+   "id": "c7ba3119",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "================================================================================\n",
+      "TRUE: neg | PRED: pos\n",
+      "First off let me say, If you haven't enjoyed a Van Damme movie since bloodsport, you probably will not like this movie. Most of these movies may not have the best plots or best actors but I enjoy these kinds of movies for what they are. This movie is much better than any of the movies the other action guys (Segal and Dolph) have thought about putting out the past few years. Van Damme is good in the movie, the movie is only worth watching to Van Damme fans. It is not as good as Wake of Death (which i highly recommend to anyone of likes Van Damme) or In hell but, in my opinion it's worth watching. It has the same type of feel to it as Nowhere to Run. Good fun stuff! ...\n",
+      "================================================================================\n",
+      "TRUE: neg | PRED: pos\n",
+      "Ben, (Rupert Grint), is a deeply unhappy adolescent, the son of his unhappily married parents. His father, (Nicholas Farrell), is a vicar and his mother, (Laura Linney), is ... well, let's just say she's a somewhat hypocritical soldier in Jesus' army. It's only when he takes a summer job as an assistant to a foul-mouthed, eccentric, once-famous and now-forgotten actress Evie Walton, (Julie Walters), that he finally finds himself in true 'Harold and Maude' fashion. Of course, Evie is deeply unhappy herself and it's only when these two sad sacks find each other that they can put their mutual misery aside and hit the road to happiness.<br /><br />Of course it's corny and sentimental and very predictable but it has a hard side to it, too and Walters, who could sleep-walk her way through this sort of thing if she wanted, is excellent. It's when she puts the craziness to one side and finds the pathos in the character, (like hitting the bottle and throwing up in the sink), that she's at her b ...\n",
+      "================================================================================\n",
+      "TRUE: neg | PRED: pos\n",
+      "Low budget horror movie. If you don't raise your expectations too high, you'll probably enjoy this little flick. Beginning and end are pretty good, middle drags at times and seems to go nowhere for long periods as we watch the goings on of the insane that add atmosphere but do not advance the plot. Quite a bit of gore. I enjoyed Bill McGhee's performance which he made quite believable for such a low budget picture, he managed to carry the movie at times when nothing much seemed to be happening. Nurse Charlotte Beale, played by Jesse Lee, played her character well so be prepared to want to slap her toward the end! She makes some really stupid mistakes but then, that's what makes these low budget movies so good! I would have been out of that place and five states away long before she even considered that it might be a good idea to leave! If you enjoy this movie, try Committed from 1988 which is basically a rip off of this movie. ...\n",
+      "================================================================================\n",
+      "TRUE: neg | PRED: pos\n",
+      "The only reason this movie is not given a 1 (awful) vote is that the acting of both Ida Lupino and Robert Ryan is superb. Ida Lupino who is lovely, as usual, becomes increasingly distraught as she tries various means to rid herself of a madman. Robert Ryan is terrifying as the menacing stranger whose character, guided only by his disturbed mind, changes from one minute to the next. Seemingly simple and docile, suddenly he becomes clever and threatening. Ms. Lupino's character was in more danger from that house she lived in and her own stupidity than by anyone who came along. She could not manage to get out of her of her own house: windows didn't open, both front and back doors locked and unlocked from the inside with a key. You could not have designed a worse fire-trap if you tried. She did not take the precaution of having even one extra key. Nor could she figure out how to summon help from nearby neighbors or get out of her own basement while she was locked in and out of sight of her ...\n",
+      "================================================================================\n",
+      "TRUE: neg | PRED: pos\n",
+      "Okay, so it was never going to change the world, and it bombed at the box office, but Honky Tonk Freeway is one of those films I fell in love with as a child (the BBC showed it a few times during the 1980s and I happened to have a high quality VHS tape in the machine - lucky, that!) and watched endlessly. I watched the DVD last night and sadly, time has not been kind to this would-be blockbuster. Either that or I've just grown out of this kind of broad, dopey humour. Come on, when Schlesinger is so desperate for laughs he gives us close-ups of novelty underpants with 'amusing' slogans, what can you say about the cast or screenplay?<br /><br />Certainly, it's ambitious, interesting, unusual and sprawling, but it's never once laugh-out-loud funny. I'd describe it as a children's film with some 'adult' overtones - you can safely let your youngsters watch this, despite the 15 certificate. They won't get the drug references, so don't worry about it. I had a pleasant surprise when I realized ...\n",
+      "================================================================================\n",
+      "TRUE: neg | PRED: pos\n",
+      "1983's \"Frightmare\" is an odd little film. The director seems to be trying to combine the atmosphere of classic '30s/'40s style horror movies with the shock factor of the then-exploding '80s slasher genre. It isn't totally successful (mostly due to very obvious budgetary restraints, and the less-than-professional caliber of its cast of young actors) but it still has its moments, mostly due to the classy performance (classier than the movie deserves) by the late German actor Ferdinand Mayne, who plays an aging old time horror movie star (ala Vincent Price) named \"Conrad Ratzoff.\" At the beginning of the movie we meet the has-been horror star as he's shooting a commercial for dentures and we quickly learn that ol' Conrad is a bit of a hoity-toity, prima donna jerk-off. Just when you think he couldn't be any more un-likable, the commercial director berates Conrad for blowing a take for the umpteenth time and the old goat pushes him off a balcony to his death. Nice, huh? Conrad then visits ...\n",
+      "================================================================================\n",
+      "TRUE: neg | PRED: pos\n",
+      "I don't get it! The teenage leads in \"Horror Star\" supposedly all are devoted horror fans, yet when their favorite idol (Conrad Radzoff) passes away, they dig up his corpse and do all sorts of disrespectful stuff with it, like disco-dancing it around the house and throw food leftovers at it. That doesn't sound like something real horror fans would do, now does it? I'm a big horror fan and I immensely idolize departed icons like Vincent Price, Peter Cushing and Boris Karloff, but it would never come to my mind to ridicule their memory. No wonder Conrad comes back from the dead  admittedly, after a séance  to wipe them all off the face of the earth! Mr. Radzoff already wasn't known for his friendliness in life, since he occasionally killed the directors that disagreed with his visions, and even after his death he suffers from a tremendous ego. Even inside his tomb there are video messages to petrify possible visitors and the group of teenagers will vividly experience that he also enjoy ...\n",
+      "================================================================================\n",
+      "TRUE: neg | PRED: pos\n",
+      "The film opens with a cult leader attempting to resurrect a dead member with his followers chanting for his rebirth as the sun strikes upon them in the desert. Reanhauer(Bill Roy)believes wholeheartedly in his power, and gets so worked up that he collapses with what appeared to be a heart attack. Unable to keep him alive, all those involved, doctors and nurses, are sentenced for attack with Reanhauer's demonic spirit invading the curvaceous body of nurse Sherri(..big-chested Jill Jacobson)targeting each one using her as a tool of vengeance. Forced against her will, with no memory of inflicting such harm, Sherri's host body murders selected victims. Fortunately, Sherri's fellow co-worker, nurse Tara(Marilyn Joi)begins a rather blossoming romance with a blinded patient, Marcus Washington(Prentiss Moulden), once a star football player, whose mother was a practitioner of voodoo. Through Marcus' knowledge, passed down from mom, Tara finds out about possession and how to possibly save Sherri ...\n",
+      "================================================================================\n",
+      "TRUE: neg | PRED: pos\n",
+      "This is a hard film to rate. While it truly deserves its 3 (or perhaps even a two), for an Al Adamson film, it's exceptional--and practically Adamson's very best. That's because unlike many Adamson films, there are times when NURSE SHERRI almost looks competent. But, being an Adamson film, you know that sooner or later that crappiness MUST rear its ugly head! <br /><br />The film begins with some bizarre cult leader of a huge congregation (six) trying to resurrect a dead guy who looks like he's made of blue cheese. However, in the process, the cult dude has a heart attack and it taken to the hospital. He apparently dies, but it also seems like many of these hospital scenes are missing and a few of them appear much later in the film. In other words, when you see the film, he appears to have possibly recovered--only to hear later that he'd died. Because the guy is the b.f.f. of Satan, however, his evil soul can't die and he comes back to both haunt one of his henchmen and to possess Nurs ...\n",
+      "================================================================================\n",
+      "TRUE: neg | PRED: pos\n",
+      "This film seems well made, and more efforts should be made to promote films by women. That aside, this film is also profoundly disturbing in that it justifies the manipulative and psychotic machinations of a character that is profoundly disturbed. If you've seen any of the promotional material, you might think this is a poignant film about a relationship that's reached its end, but none of that suggests how really disturbing the central premise is:<br /><br />A woman threatens suicide unless her soon to be ex agrees to relive here most treasured memories of their relationship. When told how unfair (to say the least) that such a threat is, Tessa (the purported protagonist) suggests that \"life's not fair.\"<br /><br />Huh??? This character also uses tears to manipulate her former lover into staying, and coaxes him into sexually oriented behavior (which she initially denies as a motive) all the while assuring him \"this isn't sex.\"<br /><br />Reverse the genders, have the leads played by Tr ...\n"
+     ]
+    }
+   ],
+   "source": [
+    "mis_idx = np.where(all_preds != all_labels)[0]\n",
+    "len(mis_idx)\n",
+    "\n",
+    "for idx in mis_idx[:10]:\n",
+    "    text = test_ds[int(idx)][\"text\"]\n",
+    "    true_label = id2label[int(all_labels[idx])]\n",
+    "    pred_label = id2label[int(all_preds[idx])]\n",
+    "    print(\"=\" * 80)\n",
+    "    print(f\"TRUE: {true_label} | PRED: {pred_label}\")\n",
+    "    print(text[:1000], \"...\")"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "hf-seq-classification",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.19"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

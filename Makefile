@@ -3,9 +3,15 @@
 # -------------------------------------------------------------------
 
 # Variables
-ENV_NAME = hf-seq-classification
-MODEL_RUN = models/runs/imdb-distilbert-v1
-NOTEBOOK = notebooks/evaluate.ipynb
+ENV_NAME    = hf-seq-classification
+
+# Default training parameters (can be overridden: MODEL=..., DATASET=..., RUN_NAME=...)
+MODEL       ?= distilbert-base-uncased
+DATASET     ?= imdb
+RUN_NAME    ?= $(DATASET)-distilbert-v1        # e.g. imdb-distilbert-v1
+MODEL_RUN_DIR = models/runs/$(RUN_NAME)
+
+NOTEBOOK    = notebooks/evaluate.ipynb
 
 # -------------------------------------------------------------------
 # Environment
@@ -24,19 +30,20 @@ activate: # Activate the conda environment
 # Training & Inference
 # -------------------------------------------------------------------
 
-train: # Train the model with default settings
+train:  # Train the model with current MODEL/DATASET/RUN_NAME
 	python scripts/train.py \
-		--model_name distilbert-base-uncased \
-		--dataset_name imdb \
-		--output_dir $(MODEL_RUN) \
+		--model_name $(MODEL) \
+		--dataset_name $(DATASET) \
+		--output_dir $(MODEL_RUN_DIR) \
 		--num_train_epochs 2 \
 		--per_device_train_batch_size 4 \
 		--load_best_model_at_end \
 		--save_total_limit 2
 
+
 inference: # Run inference with a pre-trained model
 	python scripts/inference.py \
-		--model_path $(MODEL_RUN) \
+		--model_path $(MODEL_RUN_DIR) \
 		--text "This movie was great!" "Awful plot."
 
 # -------------------------------------------------------------------
@@ -90,6 +97,15 @@ check-models:  # Verify models/ directory exists
 		exit 1; \
 	fi
 
+doctor:  # Run all sanity checks
+	@echo "Running project health checks..."
+	@$(MAKE) check-python
+	@$(MAKE) check-imports
+	@$(MAKE) check-models
+	@$(MAKE) check-hf || true
+	@echo "All checks completed."
+
+
 # -------------------------------------------------------------------
 # Utility
 # -------------------------------------------------------------------
@@ -106,5 +122,8 @@ help:
 	@echo "Available commands:"
 	@grep -E '^[a-zA-Z_-]+:.*?#' Makefile | sed 's/:.*?#/ - /'
 
-.PHONY: env update-env activate train inference evaluate notebook test clean clean-checkpoints
-.PHONY:	check-python check-imports check-kernel check-models check-hf help
+.PHONY: help env update-env activate \
+        train inference evaluate notebook test \
+        clean clean-checkpoints \
+        check-python check-imports check-kernel check-models check-hf \
+        doctor

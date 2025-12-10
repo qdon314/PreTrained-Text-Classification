@@ -1,6 +1,4 @@
 from pathlib import Path
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
-
 
 def get_model_path(model: str) -> Path:
     """
